@@ -6,9 +6,9 @@ from .views import *
 
 
 router = DefaultRouter()
-router.register(r"quiz", GetQuizInfoView, basename="quiz")
-
-router.register(r"questions", GetQuestionsInfoView, basename="questions")
+router.register(r"quiz", QuizView, basename="quiz")
+router.register(r"questions", QuestionsView, basename="questions")
+router.register(r"userResult", UserResultsView, basename="user_results")
 
 urlpatterns = [
     url(r"^", include(router.urls)),

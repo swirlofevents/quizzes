@@ -1,5 +1,8 @@
+from django.db import models
+from django.db.models import fields
 from rest_framework.serializers import ModelSerializer, CharField, Serializer, ValidationError
-from .models import Quiz, Questions, Answers, User
+from rest_framework.viewsets import ModelViewSet
+from .models import Quiz, Question, Answer, User, UserResult, UserAnswer
 from drf_writable_nested import WritableNestedModelSerializer
 from django.contrib.auth import authenticate
 from .authenticate import UserAuthenticate
@@ -7,7 +10,7 @@ from .authenticate import UserAuthenticate
 
 class AnswersSerializer(ModelSerializer):
     class Meta:
-        model = Answers
+        model = Answer
         fields = ("id", "content")
 
 
@@ -17,7 +20,7 @@ class QuestionsSerializer(WritableNestedModelSerializer, ModelSerializer):
     answers = AnswersSerializer(many=True)
 
     class Meta:
-        model = Questions
+        model = Question
         fields = ("id", "content", "question_type", "answers")
 
 
@@ -28,6 +31,21 @@ class QuizSerializer(WritableNestedModelSerializer, ModelSerializer):
     class Meta:
         model = Quiz
         fields = ("id", "name", "date_start", "date_finish", "description", "questions")
+
+
+class UserAnswerSerializer(ModelSerializer):
+    class Meta:
+        model = UserAnswer
+        fields = "__all__"
+
+
+class UserResultSerializer(WritableNestedModelSerializer, ModelSerializer):
+
+    answers = UserAnswerSerializer(many=True)
+
+    class Meta:
+        model = UserResult
+        fields = ("user", "quiz", "answers")
 
 
 # Auth/reg serializers

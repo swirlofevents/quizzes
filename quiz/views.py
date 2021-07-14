@@ -3,14 +3,21 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework import status
-from .models import Questions, Quiz
-from .serializers import QuizSerializer, QuestionsSerializer, RegistrationSerializer, LoginSerializer
+from .models import Question, Quiz, UserResult, UserAnswer
+from .serializers import (
+    QuizSerializer,
+    QuestionsSerializer,
+    RegistrationSerializer,
+    LoginSerializer,
+    UserAnswerSerializer,
+    UserResultSerializer,
+)
 from datetime import datetime
 
 permission = (AllowAny,)
 
 
-class GetQuizInfoView(ModelViewSet):
+class QuizView(ModelViewSet):
 
     permission_classes = permission
     queryset = Quiz.objects.all()
@@ -22,11 +29,18 @@ class GetQuizInfoView(ModelViewSet):
         return Response(serializer.data)
 
 
-class GetQuestionsInfoView(ModelViewSet):
+class QuestionsView(ModelViewSet):
 
     permission_classes = permission
-    queryset = Questions.objects.all()
+    queryset = Question.objects.all()
     serializer_class = QuestionsSerializer
+
+
+class UserResultsView(ModelViewSet):
+
+    permission_classes = permission
+    queryset = UserResult.objects.all()
+    serializer_class = UserResultSerializer
 
 
 # Auth views
