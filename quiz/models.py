@@ -1,3 +1,4 @@
+import jwt
 from django.db.models import (
     Model,
     IntegerField,
@@ -8,6 +9,42 @@ from django.db.models import (
     DateTimeField,
     CASCADE,
 )
+from django.conf import settings
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+
+from .managers import UserManager
+
+from datetime import datetime, timedelta
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+
+    username = CharField(db_index=True, max_length=255, unique=True)
+
+    is_staff = BooleanField(default=False)
+
+    USERNAME_FIELD = "username"
+
+    objects = UserManager()
+
+    def __str__(self):
+        return self.username
+
+    def _generate_token(self):
+        dt = datetime.now() + timedelta(days=60)
+
+        token = jwt.encode(
+            {"id": self.pk, "exp": int(dt.strftime("%S"))}, settings.SECRET_KEY, algorithm="HS256"
+        )
+
+        return token
+
+    @property
+    def token(self):
+        """Определяем метод генерации токена как аттрибут
+        для удобной работы
+        """
+        return self._generate_token()
 
 
 class Quiz(Model):

@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     "quiz",
 ]
 
+AUTH_USER_MODEL = "quiz.User"
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -93,6 +95,11 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
+
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("quiz.authenticate.UserAuthenticate",),
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
