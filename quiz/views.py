@@ -42,6 +42,11 @@ class UserResultsView(ModelViewSet):
     queryset = UserResult.objects.all()
     serializer_class = UserResultSerializer
 
+    def retrieve(self, request, pk):
+        user_results = self.queryset.filter(user=pk)
+        result = self.serializer_class(user_results, many=True)
+        return Response(result.data)
+
 
 # Auth views
 
