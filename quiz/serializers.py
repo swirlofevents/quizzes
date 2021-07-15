@@ -32,6 +32,12 @@ class QuizSerializer(WritableNestedModelSerializer, ModelSerializer):
         model = Quiz
         fields = ("id", "name", "date_start", "date_finish", "description", "questions")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # запрет на изменение
+        if self.instance is not None:
+            self.fields.get("date_start").read_only = True
+
 
 class UserAnswerSerializer(ModelSerializer):
     class Meta:
