@@ -33,7 +33,7 @@ class UserAuthenticate(authentication.BaseAuthentication):
 
     def _authenticate_credentials(self, request, token):
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY)
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithm="HS256")
         except:
             raise exceptions.AuthenticationFailed("Неверный токен")
 

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "quiz",
+    "drf_yasg",
 ]
 
 AUTH_USER_MODEL = "quiz.User"

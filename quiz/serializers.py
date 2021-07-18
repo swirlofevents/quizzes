@@ -1,11 +1,28 @@
-from django.db import models
-from django.db.models import fields
-from rest_framework.serializers import ModelSerializer, CharField, Serializer, ValidationError
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.serializers import (
+    ModelSerializer,
+    CharField,
+    Serializer,
+    ValidationError,
+    IntegerField,
+)
 from .models import Quiz, Question, Answer, User, UserResult, UserAnswer
 from drf_writable_nested import WritableNestedModelSerializer
 from django.contrib.auth import authenticate
-from .authenticate import UserAuthenticate
+
+
+# Отдельный класс сериализации для результатов
+class UserForResultsSerializer(ModelSerializer):
+
+    id = IntegerField(label="ID")
+    username = CharField(max_length=255)
+
+    class Meta:
+        model = User
+        fields = ("id", "username")
+
+    def create(self, validated_data):
+        user = User.objects.create(**validated_data)
+        return user
 
 
 class AnswersSerializer(ModelSerializer):
@@ -32,6 +49,12 @@ class QuizSerializer(WritableNestedModelSerializer, ModelSerializer):
         model = Quiz
         fields = ("id", "name", "date_start", "date_finish", "description", "questions")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # запрет на изменение
+        if self.instance is not None:
+            self.fields.get("date_start").read_only = True
+
 
 class UserAnswerSerializer(ModelSerializer):
     class Meta:
@@ -41,11 +64,28 @@ class UserAnswerSerializer(ModelSerializer):
 
 class UserResultSerializer(WritableNestedModelSerializer, ModelSerializer):
 
+    user = UserForResultsSerializer()
     answers = UserAnswerSerializer(many=True)
 
     class Meta:
         model = UserResult
         fields = ("user", "quiz", "answers")
+
+    def create(self, validated_data):
+        user_data = validated_data.pop("user")
+        user = User.objects.filter(id=user_data.get("id")).first()
+        quiz = validated_data.pop("quiz")
+        # Проверка на пользователя, если его не существует, создается новый анонимный
+        if not user:
+            user = UserForResultsSerializer.create(UserForResultsSerializer(), user_data)
+        # Проверка на опрос, его обязательно нужно передать
+        if not quiz:
+            raise ValidationError("Опрос не может быть пустым")
+        user_result = UserResult.objects.create(user=user, quiz=quiz)
+        answers = validated_data.pop("answers")
+        for answer in answers:
+            UserAnswer.objects.create(user_result=user_result, **answer)
+        return user_result
 
 
 # Auth/reg serializers
@@ -92,7 +132,7 @@ class LoginSerializer(Serializer):
         if password is None:
             raise ValidationError("Не введен пароль.")
 
-        user = UserAuthenticate.authenticate(username=username, password=password)
+        user = authenticate(username=username, password=password)
 
         if user is None:
             raise ValidationError("Пользователь с таким именем и паролем не найден")
