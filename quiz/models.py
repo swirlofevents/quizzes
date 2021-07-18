@@ -31,13 +31,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.username
 
     def _generate_token(self):
-        dt = datetime.now() + timedelta(days=60)
 
-        token = jwt.encode(
-            {"id": self.pk, "exp": int(dt.strftime("%S"))}, settings.SECRET_KEY, algorithm="HS256"
-        )
-
-        return token
+        token = jwt.encode({"id": self.pk}, settings.SECRET_KEY, algorithm="HS256")
+        return token.decode("utf-8")
 
     @property
     def token(self):
@@ -108,7 +104,6 @@ class UserResult(Model):
 class UserAnswer(Model):
     answer = ForeignKey(Answer, on_delete=CASCADE)
     question = ForeignKey(Question, on_delete=CASCADE)
-    user = ForeignKey(User, on_delete=CASCADE)
     user_result = ForeignKey(UserResult, on_delete=CASCADE, related_name="answers", blank=True)
 
     class Meta:
